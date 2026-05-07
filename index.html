@@ -1,171 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VidAI — AI YouTube Video Generator</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --gold: #FFD700; --orange: #FF6B00; --red: #FF2D2D; --bg: #080808; --surface: #111111; --border: rgba(255,255,255,0.07); --text: #F0F0F0; --muted: #666; }
-    html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
-    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; opacity: 0.4; }
-    .blob { position: fixed; border-radius: 50%; filter: blur(120px); opacity: 0.07; pointer-events: none; z-index: 0; }
-    .blob-1 { width: 600px; height: 600px; background: var(--gold); top: -200px; right: -200px; }
-    .blob-2 { width: 400px; height: 400px; background: var(--red); bottom: 100px; left: -100px; }
-    nav { position: sticky; top: 0; z-index: 100; background: rgba(8,8,8,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 40px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
-    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--gold), var(--orange)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #000; }
-    .logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; background: linear-gradient(90deg, var(--gold), var(--orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .nav-badge { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.25); color: var(--gold); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600; letter-spacing: 1px; }
-    .hero { position: relative; z-index: 1; text-align: center; padding: 80px 24px 60px; }
-    .hero-pill { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.2); border-radius: 30px; padding: 6px 16px; font-size: 12px; color: var(--gold); font-weight: 600; letter-spacing: 1px; margin-bottom: 28px; animation: fadeUp 0.6s ease both; }
-    .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(52px, 10vw, 100px); letter-spacing: 3px; line-height: 0.95; margin-bottom: 24px; animation: fadeUp 0.6s ease 0.1s both; }
-    .hero h1 span { background: linear-gradient(135deg, var(--gold) 0%, var(--orange) 50%, var(--red) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero p { max-width: 520px; margin: 0 auto 40px; color: #999; font-size: 16px; line-height: 1.7; animation: fadeUp 0.6s ease 0.2s both; }
-    .hero-stats { display: flex; justify-content: center; gap: 40px; animation: fadeUp 0.6s ease 0.3s both; margin-bottom: 48px; }
-    .stat { text-align: center; }
-    .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--gold); letter-spacing: 1px; }
-    .stat-label { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-top: 2px; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .app-wrap { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 0 20px 80px; }
-    .app-card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; overflow: hidden; box-shadow: 0 40px 120px rgba(0,0,0,0.6); }
-    .app-header { background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); padding: 20px 28px; display: flex; align-items: center; gap: 8px; }
-    .dot { width: 12px; height: 12px; border-radius: 50%; }
-    .dot-r { background: #FF5F57; } .dot-y { background: #FFBD2E; } .dot-g { background: #28C840; }
-    .app-title { margin-left: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
-    .app-body { padding: 36px 32px; }
-    .field-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 10px; display: block; }
-    textarea { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 16px 18px; color: var(--text); font-size: 15px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; resize: none; }
-    textarea:focus { border-color: rgba(255,215,0,0.35); }
-    textarea::placeholder { color: #444; }
-    .field-group { margin-bottom: 24px; }
-    .options-row { display: flex; gap: 10px; flex-wrap: wrap; }
-    .opt-btn { flex: 1; min-width: 120px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #aaa; border-radius: 10px; padding: 12px 14px; cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif; transition: all 0.18s; text-align: center; }
-    .opt-btn:hover { border-color: rgba(255,215,0,0.3); color: #ccc; }
-    .opt-btn.active { background: rgba(255,215,0,0.1); border-color: rgba(255,215,0,0.45); color: var(--gold); font-weight: 600; }
-    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    #generateBtn { width: 100%; background: linear-gradient(135deg, var(--gold) 0%, var(--orange) 60%, var(--red) 100%); border: none; color: #000; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 800; font-family: 'DM Sans', sans-serif; cursor: pointer; letter-spacing: 0.5px; transition: opacity 0.2s, transform 0.15s; margin-top: 8px; }
-    #generateBtn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-    #generateBtn:disabled { background: rgba(255,255,255,0.06); color: #444; cursor: not-allowed; transform: none; }
-    #loadingSection { display: none; text-align: center; padding: 60px 0; }
-    .spinner { width: 56px; height: 56px; border-radius: 50%; border: 3px solid rgba(255,215,0,0.15); border-top-color: var(--gold); animation: spin 0.9s linear infinite; margin: 0 auto 24px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-title { font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
-    .loading-sub { color: var(--muted); font-size: 14px; }
-    .loading-steps { margin-top: 24px; display: flex; flex-direction: column; gap: 8px; text-align: left; max-width: 260px; margin-left: auto; margin-right: auto; }
-    .loading-step { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #555; font-family: 'JetBrains Mono', monospace; transition: color 0.3s; }
-    .loading-step.active { color: var(--gold); }
-    .step-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-    #resultSection { display: none; }
-    .result-meta { background: rgba(255,215,0,0.05); border: 1px solid rgba(255,215,0,0.15); border-radius: 16px; padding: 24px 26px; margin-bottom: 28px; }
-    .result-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; color: var(--gold); margin-bottom: 10px; line-height: 1.2; }
-    .result-desc { color: #bbb; font-size: 14px; line-height: 1.7; margin-bottom: 16px; }
-    .tags-row { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
-    .tag { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #888; border-radius: 20px; padding: 3px 11px; font-size: 11px; }
-    .meta-stats { display: flex; gap: 20px; font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
-    .hook-box { background: rgba(255,107,0,0.07); border: 1px solid rgba(255,107,0,0.2); border-radius: 12px; padding: 14px 18px; margin-bottom: 28px; font-size: 14px; color: #FF9966; line-height: 1.5; }
-    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; font-family: 'JetBrains Mono', monospace; }
-    .scene-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 20px 22px 20px 28px; margin-bottom: 14px; position: relative; overflow: hidden; transition: border-color 0.2s; }
-    .scene-card:hover { border-color: rgba(255,215,0,0.18); }
-    .scene-accent { position: absolute; left: 0; top: 0; width: 4px; height: 100%; background: linear-gradient(180deg, var(--gold), var(--orange)); border-radius: 4px 0 0 4px; }
-    .scene-top { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-    .scene-num { background: linear-gradient(135deg, var(--gold), var(--orange)); color: #000; border-radius: 20px; padding: 2px 11px; font-size: 10px; font-weight: 800; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; }
-    .scene-type { background: rgba(255,255,255,0.06); color: #aaa; border-radius: 6px; padding: 2px 9px; font-size: 11px; }
-    .scene-dur { color: var(--muted); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
-    .scene-visual { color: #FFE58A; font-size: 12px; font-weight: 600; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
-    .scene-narration { color: #ddd; font-size: 14px; line-height: 1.75; font-family: Georgia, serif; }
-    .scene-broll { margin-top: 10px; color: #666; font-size: 12px; font-style: italic; }
-    .result-actions { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
-    .btn-copy { flex: 1; background: linear-gradient(135deg, var(--gold), var(--orange)); border: none; color: #000; border-radius: 12px; padding: 14px 20px; font-size: 14px; font-weight: 700; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.2s; }
-    .btn-copy:hover { opacity: 0.88; }
-    .btn-new { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #aaa; border-radius: 12px; padding: 14px 20px; font-size: 14px; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; }
-    .btn-new:hover { border-color: rgba(255,255,255,0.2); color: #ccc; }
-    .error-box { background: rgba(255,45,45,0.07); border: 1px solid rgba(255,45,45,0.25); color: #ff7070; border-radius: 12px; padding: 14px 18px; font-size: 14px; margin-bottom: 20px; display: none; }
-    .how-section { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 0 20px 80px; }
-    .how-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 2px; text-align: center; margin-bottom: 40px; }
-    .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
-    .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px 20px; text-align: center; }
-    .step-icon { font-size: 32px; margin-bottom: 12px; }
-    .step-name { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
-    .step-desc { color: var(--muted); font-size: 12px; line-height: 1.6; }
-    footer { position: relative; z-index: 1; text-align: center; padding: 28px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
-    footer span { color: var(--gold); }
-    @media (max-width: 600px) {
-      nav { padding: 0 20px; } .app-body { padding: 24px 20px; } .hero { padding: 50px 20px 40px; }
-      .hero-stats { gap: 24px; } .options-grid { grid-template-columns: 1fr; }
-      .result-actions { flex-direction: column; } .meta-stats { flex-direction: column; gap: 6px; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--gold:#FFD700;--orange:#FF6B00;--red:#FF2D2D;--green:#00C853;--bg:#080808;--surface:#111;--surface2:#181818;--border:rgba(255,255,255,0.07);--text:#F0F0F0;--muted:#666}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.4}
+    .blob{position:fixed;border-radius:50%;filter:blur(120px);opacity:.07;pointer-events:none;z-index:0}
+    .b1{width:600px;height:600px;background:var(--gold);top:-200px;right:-200px}
+    .b2{width:400px;height:400px;background:var(--red);bottom:100px;left:-100px}
+    .b3{width:300px;height:300px;background:#0066FF;top:50%;left:50%;transform:translate(-50%,-50%)}
+
+    /* NAV */
+    nav{position:sticky;top:0;z-index:100;background:rgba(8,8,8,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--gold),var(--orange));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#000;font-weight:900}
+    .logo-text{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;background:linear-gradient(90deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .nav-right{display:flex;align-items:center;gap:10px}
+    .nav-badge{background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.25);color:var(--green);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:1px}
+
+    /* HERO */
+    .hero{position:relative;z-index:1;text-align:center;padding:60px 24px 40px}
+    .hero-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:30px;padding:5px 14px;font-size:11px;color:var(--gold);font-weight:600;letter-spacing:1px;margin-bottom:20px;animation:fadeUp .6s ease both}
+    .hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,9vw,90px);letter-spacing:3px;line-height:.95;margin-bottom:18px;animation:fadeUp .6s ease .1s both}
+    .hero h1 span{background:linear-gradient(135deg,var(--gold) 0%,var(--orange) 50%,var(--red) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{max-width:500px;margin:0 auto 28px;color:#999;font-size:15px;line-height:1.7;animation:fadeUp .6s ease .2s both}
+
+    /* FEATURE PILLS */
+    .feature-pills{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:40px;animation:fadeUp .6s ease .3s both}
+    .fpill{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:5px 12px;font-size:11px;color:#aaa;display:flex;align-items:center;gap:5px}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+    /* APP */
+    .app-wrap{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:0 16px 60px}
+    .app-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,0.6)}
+    .app-header{background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;gap:8px}
+    .dot{width:11px;height:11px;border-radius:50%}
+    .dr{background:#FF5F57}.dy{background:#FFBD2E}.dg{background:#28C840}
+    .app-title{margin-left:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+    .app-body{padding:28px 28px}
+
+    /* TABS */
+    .tabs{display:flex;gap:4px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:28px}
+    .tab{flex:1;padding:10px;border:none;background:transparent;color:#666;font-size:13px;font-family:'DM Sans',sans-serif;border-radius:9px;cursor:pointer;transition:all .2s;font-weight:500}
+    .tab.active{background:rgba(255,215,0,0.12);color:var(--gold);font-weight:700}
+
+    /* FORM */
+    .field-label{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px;display:block}
+    textarea{width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-radius:12px;padding:14px 16px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;resize:none}
+    textarea:focus{border-color:rgba(255,215,0,0.35)}
+    textarea::placeholder{color:#444}
+    .field-group{margin-bottom:20px}
+    .options-row{display:flex;gap:8px;flex-wrap:wrap}
+    .opt-btn{flex:1;min-width:100px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:#aaa;border-radius:10px;padding:10px 12px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;transition:all .18s;text-align:center}
+    .opt-btn:hover{border-color:rgba(255,215,0,0.3);color:#ccc}
+    .opt-btn.active{background:rgba(255,215,0,0.1);border-color:rgba(255,215,0,0.45);color:var(--gold);font-weight:600}
+    .options-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+    /* TOGGLES */
+    .toggles-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+    .toggle-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s}
+    .toggle-card.on{border-color:rgba(0,200,83,0.3);background:rgba(0,200,83,0.05)}
+    .toggle-label{font-size:12px;color:#ccc;font-weight:500}
+    .toggle-sub{font-size:10px;color:var(--muted);margin-top:2px}
+    .toggle-switch{width:36px;height:20px;background:rgba(255,255,255,0.1);border-radius:10px;position:relative;transition:background .2s}
+    .toggle-switch.on{background:var(--green)}
+    .toggle-switch::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s}
+    .toggle-switch.on::after{transform:translateX(16px)}
+
+    #generateBtn{width:100%;background:linear-gradient(135deg,var(--gold) 0%,var(--orange) 60%,var(--red) 100%);border:none;color:#000;border-radius:14px;padding:16px;font-size:15px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:.5px;transition:opacity .2s,transform .15s;margin-top:6px}
+    #generateBtn:hover:not(:disabled){opacity:.9;transform:translateY(-1px)}
+    #generateBtn:disabled{background:rgba(255,255,255,0.06);color:#444;cursor:not-allowed;transform:none}
+
+    /* LOADING */
+    #loadingSection{display:none;text-align:center;padding:50px 0}
+    .spinner{width:52px;height:52px;border-radius:50%;border:3px solid rgba(255,215,0,0.15);border-top-color:var(--gold);animation:spin .9s linear infinite;margin:0 auto 20px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-title{font-size:17px;font-weight:700;color:var(--gold);margin-bottom:6px}
+    .loading-sub{color:var(--muted);font-size:13px}
+    .loading-steps{margin-top:20px;display:flex;flex-direction:column;gap:7px;text-align:left;max-width:240px;margin-left:auto;margin-right:auto}
+    .loading-step{display:flex;align-items:center;gap:8px;font-size:12px;color:#555;font-family:'JetBrains Mono',monospace;transition:color .3s}
+    .loading-step.active{color:var(--gold)}
+    .step-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+    /* RESULT */
+    #resultSection{display:none}
+    .result-meta{background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.15);border-radius:16px;padding:20px 22px;margin-bottom:22px}
+    .result-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;color:var(--gold);margin-bottom:8px;line-height:1.2}
+    .result-desc{color:#bbb;font-size:13px;line-height:1.7;margin-bottom:14px}
+    .tags-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+    .tag{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#888;border-radius:20px;padding:2px 10px;font-size:10px}
+    .meta-stats{display:flex;gap:16px;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;flex-wrap:wrap}
+    .hook-box{background:rgba(255,107,0,0.07);border:1px solid rgba(255,107,0,0.2);border-radius:12px;padding:12px 16px;margin-bottom:22px;font-size:13px;color:#FF9966;line-height:1.5}
+    .section-label{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:12px;font-family:'JetBrains Mono',monospace}
+
+    /* SCENE CARD */
+    .scene-card{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 18px 16px 24px;margin-bottom:12px;position:relative;overflow:hidden;transition:border-color .2s}
+    .scene-card:hover{border-color:rgba(255,215,0,0.18)}
+    .scene-accent{position:absolute;left:0;top:0;width:4px;height:100%;background:linear-gradient(180deg,var(--gold),var(--orange));border-radius:4px 0 0 4px}
+    .scene-top{display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-wrap:wrap}
+    .scene-num{background:linear-gradient(135deg,var(--gold),var(--orange));color:#000;border-radius:20px;padding:2px 10px;font-size:9px;font-weight:800;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+    .scene-type{background:rgba(255,255,255,0.06);color:#aaa;border-radius:6px;padding:2px 8px;font-size:10px}
+    .scene-dur{color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace}
+    .scene-visual{color:#FFE58A;font-size:11px;font-weight:600;margin-bottom:6px;font-family:'JetBrains Mono',monospace}
+    .scene-narration{color:#ddd;font-size:13px;line-height:1.75;font-family:Georgia,serif}
+    .scene-broll{margin-top:8px;color:#666;font-size:11px;font-style:italic}
+
+    /* AI IMAGE */
+    .scene-image{width:100%;border-radius:10px;margin-top:12px;border:1px solid rgba(255,255,255,0.08);max-height:200px;object-fit:cover;display:none}
+    .scene-image.loaded{display:block}
+    .img-loading{margin-top:10px;display:none;align-items:center;gap:8px;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+    .img-loading.show{display:flex}
+    .img-spinner{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,215,0,0.2);border-top-color:var(--gold);animation:spin .8s linear infinite}
+
+    /* THUMBNAIL SECTION */
+    .thumbnail-section{background:rgba(0,200,83,0.05);border:1px solid rgba(0,200,83,0.15);border-radius:14px;padding:18px 20px;margin-bottom:22px}
+    .thumbnail-title{font-size:13px;font-weight:700;color:var(--green);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .thumb-ideas{display:flex;flex-direction:column;gap:8px}
+    .thumb-idea{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 14px;font-size:12px;color:#ccc;line-height:1.5}
+    .thumb-idea strong{color:var(--gold);display:block;font-size:10px;letter-spacing:1px;margin-bottom:3px}
+
+    /* ACTIONS */
+    .result-actions{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap}
+    .btn-primary{flex:1;background:linear-gradient(135deg,var(--gold),var(--orange));border:none;color:#000;border-radius:12px;padding:13px 16px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s;min-width:120px}
+    .btn-primary:hover{opacity:.88}
+    .btn-secondary{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;border-radius:12px;padding:13px 16px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s}
+    .btn-secondary:hover{border-color:rgba(255,255,255,0.2);color:#ccc}
+    .btn-green{background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.3);color:var(--green);border-radius:12px;padding:13px 16px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;font-weight:600}
+    .btn-green:hover{background:rgba(0,200,83,0.2)}
+
+    .error-box{background:rgba(255,45,45,0.07);border:1px solid rgba(255,45,45,0.25);color:#ff7070;border-radius:12px;padding:12px 16px;font-size:13px;margin-bottom:18px;display:none}
+
+    /* HOW IT WORKS */
+    .how-section{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:0 16px 60px}
+    .how-title{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:2px;text-align:center;margin-bottom:32px}
+    .steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+    .step-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 16px;text-align:center}
+    .step-icon{font-size:28px;margin-bottom:10px}
+    .step-name{font-weight:700;font-size:13px;margin-bottom:5px}
+    .step-desc{color:var(--muted);font-size:11px;line-height:1.6}
+
+    footer{position:relative;z-index:1;text-align:center;padding:24px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+    footer span{color:var(--gold)}
+
+    @media(max-width:600px){
+      nav{padding:0 16px}
+      .app-body{padding:20px 16px}
+      .hero{padding:40px 16px 30px}
+      .options-grid{grid-template-columns:1fr}
+      .result-actions{flex-direction:column}
+      .toggles-row{grid-template-columns:1fr}
+      .meta-stats{flex-direction:column;gap:4px}
     }
   </style>
 </head>
 <body>
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
 
   <nav>
     <a class="nav-logo" href="#"><div class="logo-icon">▶</div><span class="logo-text">VidAI</span></a>
-    <span class="nav-badge">FREE · PUBLIC</span>
+    <div class="nav-right">
+      <span class="nav-badge">✦ FREE FOREVER</span>
+    </div>
   </nav>
 
   <section class="hero">
     <div class="hero-pill">✦ Powered by Claude AI</div>
-    <h1>Generate YouTube<br><span>Video Scripts</span><br>In Seconds</h1>
-    <p>Enter a topic. Choose your style. Get a complete scene-by-scene script, narration, visuals, and tags — ready to film.</p>
-    <div class="hero-stats">
-      <div class="stat"><div class="stat-num">1–3</div><div class="stat-label">MINUTE VIDEOS</div></div>
-      <div class="stat"><div class="stat-num">6–10</div><div class="stat-label">SCENES GENERATED</div></div>
-      <div class="stat"><div class="stat-num">4</div><div class="stat-label">VIDEO STYLES</div></div>
+    <h1>Generate YouTube<br><span>Video Scripts</span><br>+ AI Images</h1>
+    <p>Script, storyboard, AI visuals, thumbnail ideas — everything you need to make a YouTube video, completely free.</p>
+    <div class="feature-pills">
+      <span class="fpill">🎬 Full Script</span>
+      <span class="fpill">🖼 AI Images</span>
+      <span class="fpill">🎨 Thumbnail Ideas</span>
+      <span class="fpill">📋 PDF Export</span>
+      <span class="fpill">🏷 Auto Tags</span>
     </div>
   </section>
 
   <div class="app-wrap">
     <div class="app-card">
       <div class="app-header">
-        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div>
         <span class="app-title">vidai-agent.js — running</span>
       </div>
       <div class="app-body">
         <div class="error-box" id="errorBox"></div>
 
+        <!-- INPUT -->
         <div id="inputSection">
           <div class="field-group">
-            <label class="field-label">YOUR VIDEO TOPIC</label>
+            <label class="field-label">VIDEO TOPIC</label>
             <textarea id="topicInput" rows="3" placeholder="e.g. 5 habits that changed my life, How black holes work, The truth about intermittent fasting..."></textarea>
           </div>
           <div class="field-group">
             <label class="field-label">VIDEO LENGTH</label>
             <div class="options-row" id="durationGroup">
-              <button class="opt-btn" data-val="150">1 min (~150 words)</button>
-              <button class="opt-btn active" data-val="300">2 min (~300 words)</button>
-              <button class="opt-btn" data-val="450">3 min (~450 words)</button>
+              <button class="opt-btn" data-val="150">1 min</button>
+              <button class="opt-btn active" data-val="300">2 min</button>
+              <button class="opt-btn" data-val="450">3 min</button>
             </div>
           </div>
           <div class="field-group">
             <label class="field-label">VIDEO STYLE</label>
             <div class="options-grid" id="styleGroup">
               <button class="opt-btn" data-val="educational">🎓 Educational</button>
-              <button class="opt-btn active" data-val="viral">🔥 Viral / Engaging</button>
+              <button class="opt-btn active" data-val="viral">🔥 Viral</button>
               <button class="opt-btn" data-val="storytelling">📖 Storytelling</button>
-              <button class="opt-btn" data-val="tutorial">🛠 Tutorial / How-To</button>
+              <button class="opt-btn" data-val="tutorial">🛠 Tutorial</button>
             </div>
           </div>
-          <button id="generateBtn" disabled onclick="generate()">🎬 Generate Video Script</button>
+
+          <div class="field-group">
+            <label class="field-label">FREE FEATURES</label>
+            <div class="toggles-row">
+              <div class="toggle-card on" id="toggleImages" onclick="toggleFeature('images')">
+                <div><div class="toggle-label">🖼 AI Images</div><div class="toggle-sub">Generate scene visuals</div></div>
+                <div class="toggle-switch on" id="switchImages"></div>
+              </div>
+              <div class="toggle-card on" id="toggleThumbnail" onclick="toggleFeature('thumbnail')">
+                <div><div class="toggle-label">🎨 Thumbnail Ideas</div><div class="toggle-sub">3 free concepts</div></div>
+                <div class="toggle-switch on" id="switchThumbnail"></div>
+              </div>
+            </div>
+          </div>
+
+          <button id="generateBtn" disabled onclick="generate()">🎬 Generate Video + Images</button>
         </div>
 
+        <!-- LOADING -->
         <div id="loadingSection">
           <div class="spinner"></div>
-          <div class="loading-title">AI Agent Working...</div>
-          <div class="loading-sub">Building your complete video script</div>
+          <div class="loading-title" id="loadingTitle">AI Agent Working...</div>
+          <div class="loading-sub" id="loadingSub">Building your complete video</div>
           <div class="loading-steps">
             <div class="loading-step" id="ls1"><span class="step-dot"></span> Writing script structure</div>
-            <div class="loading-step" id="ls2"><span class="step-dot"></span> Crafting scene narration</div>
-            <div class="loading-step" id="ls3"><span class="step-dot"></span> Adding visual directions</div>
-            <div class="loading-step" id="ls4"><span class="step-dot"></span> Generating tags & metadata</div>
+            <div class="loading-step" id="ls2"><span class="step-dot"></span> Crafting narration</div>
+            <div class="loading-step" id="ls3"><span class="step-dot"></span> Generating thumbnail ideas</div>
+            <div class="loading-step" id="ls4"><span class="step-dot"></span> Creating AI scene images</div>
           </div>
         </div>
 
+        <!-- RESULT -->
         <div id="resultSection">
           <div class="result-meta">
             <div class="result-title" id="rTitle"></div>
@@ -174,11 +257,20 @@
             <div class="meta-stats" id="rStats"></div>
           </div>
           <div class="hook-box" id="rHook"></div>
+
+          <!-- THUMBNAIL IDEAS -->
+          <div class="thumbnail-section" id="thumbnailSection" style="display:none">
+            <div class="thumbnail-title">🎨 Thumbnail Ideas</div>
+            <div class="thumb-ideas" id="thumbIdeas"></div>
+          </div>
+
           <div class="section-label">SCENE STORYBOARD</div>
           <div id="rScenes"></div>
+
           <div class="result-actions">
-            <button class="btn-copy" id="copyBtn" onclick="copyScript()">📋 Copy Full Script</button>
-            <button class="btn-new" onclick="resetApp()">← New Video</button>
+            <button class="btn-primary" id="copyBtn" onclick="copyScript()">📋 Copy Script</button>
+            <button class="btn-green" onclick="downloadPDF()">⬇️ Download PDF</button>
+            <button class="btn-secondary" onclick="resetApp()">← New Video</button>
           </div>
         </div>
       </div>
@@ -186,77 +278,8 @@
   </div>
 
   <section class="how-section">
-    <div class="how-title">How It Works</div>
+    <div class="how-title">What You Get Free</div>
     <div class="steps-grid">
-      <div class="step-card"><div class="step-icon">✍️</div><div class="step-name">Enter Topic</div><div class="step-desc">Type any topic for your YouTube video</div></div>
-      <div class="step-card"><div class="step-icon">⚙️</div><div class="step-name">AI Generates</div><div class="step-desc">Claude AI writes a full script with scenes & narration</div></div>
-      <div class="step-card"><div class="step-icon">🎬</div><div class="step-name">Get Storyboard</div><div class="step-desc">Scene-by-scene breakdown with timing & b-roll</div></div>
-      <div class="step-card"><div class="step-icon">🚀</div><div class="step-name">Start Filming</div><div class="step-desc">Copy your script and start creating immediately</div></div>
-    </div>
-  </section>
-
-  <footer>Built with <span>Claude AI</span> · VidAI © 2025</footer>
-
-  <script>
-    let selectedDuration = 300, selectedStyle = 'viral', videoData = null;
-
-    function initOptions(groupId, onSelect) {
-      document.getElementById(groupId).querySelectorAll('.opt-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById(groupId).querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          onSelect(btn.dataset.val);
-        });
-      });
-    }
-
-    initOptions('durationGroup', val => { selectedDuration = parseInt(val); });
-    initOptions('styleGroup', val => { selectedStyle = val; });
-
-    document.getElementById('topicInput').addEventListener('input', function() {
-      document.getElementById('generateBtn').disabled = !this.value.trim();
-    });
-
-    function animateLoadingSteps() {
-      const steps = ['ls1','ls2','ls3','ls4'];
-      steps.forEach(id => document.getElementById(id).classList.remove('active'));
-      let i = 0;
-      const iv = setInterval(() => { if (i < steps.length) { document.getElementById(steps[i++]).classList.add('active'); } else clearInterval(iv); }, 900);
-    }
-
-    function showSection(name) {
-      ['inputSection','loadingSection','resultSection'].forEach(id => document.getElementById(id).style.display = 'none');
-      document.getElementById(name === 'input' ? 'inputSection' : name === 'loading' ? 'loadingSection' : 'resultSection').style.display = 'block';
-    }
-
-    async function generate() {
-      const topic = document.getElementById('topicInput').value.trim();
-      if (!topic) return;
-      document.getElementById('errorBox').style.display = 'none';
-      showSection('loading');
-      animateLoadingSteps();
-
-      try {
-        // ✅ SECURE: calls your own backend — API key stays on the server
-        const res = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ topic, duration: selectedDuration, style: selectedStyle })
-        });
-        if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Server error'); }
-        videoData = await res.json();
-        renderResult();
-        showSection('result');
-      } catch(e) {
-        const eb = document.getElementById('errorBox');
-        eb.textContent = '⚠️ ' + (e.message || 'Something went wrong. Please try again.');
-        eb.style.display = 'block';
-        showSection('input');
-      }
-    }
-
-    function renderResult() {
-      document.getElementById('rTitle').textContent = videoData.title;
-      document.getElementById('rDesc').textContent = videoData.description;
-      document.getElementById('rHook').innerHTML = `🎣 <strong>Opening Hook:</strong> ${videoData.hook}`;
-      const 
+      <div class="step-card"><div class="step-icon">✍️</div><div class="step-name">Full Script</div><div class="step-desc">Complete word-for-word narration for every scene</div></div>
+      <div class="step-card"><div class="step-icon">🖼</div><div class="step-name">AI Images</div><div class="step-desc">Auto-generated visuals for each scene using free AI</div></div>
+      <div class="step-car
