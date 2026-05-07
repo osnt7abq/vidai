@@ -1,17 +1,14 @@
 export default async function handler(req, res) {
-  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Basic rate limiting header (Vercel handles most of this)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  const { topic, duration, style } = req.body;
+  const { topic, duration, style, includeThumbnail } = req.body;
 
-  // Validate inputs
   if (!topic || typeof topic !== 'string' || topic.trim().length < 3) {
     return res.status(400).json({ error: 'Invalid topic provided' });
   }
@@ -30,6 +27,13 @@ export default async function handler(req, res) {
   const validStyle = styleMap[style] || styleMap.viral;
   const wordCount = [150, 300, 450].includes(Number(duration)) ? Number(duration) : 300;
 
+  const thumbnailPrompt = includeThumbnail ? `
+  "thumbnails": [
+    "Thumbnail concept 1: describe text overlay, background, colors, and emotion",
+    "Thumbnail concept 2: describe text overlay, background, colors, and emotion",
+    "Thumbnail concept 3: describe text overlay, background, colors, and emotion"
+  ],` : '"thumbnails": [],';
+
   const prompt = `You are a professional YouTube video scriptwriter. Generate a complete video script.
 
 Topic: "${topic.trim()}"
@@ -43,19 +47,20 @@ Return ONLY valid JSON (no markdown, no backticks) in this exact structure:
   "description": "2-sentence YouTube video description",
   "tags": ["tag1","tag2","tag3","tag4","tag5"],
   "totalDuration": ${Math.round(wordCount / 2.5)},
+  ${thumbnailPrompt}
   "scenes": [
     {
       "type": "Hook",
       "duration": 15,
-      "visual": "What the camera shows",
+      "visual": "Detailed camera shot description for AI image generation",
       "narration": "Exact words spoken",
       "broll": "Optional b-roll suggestion"
     }
   ]
 }
 
-Scene types to use: Hook, Intro, Main Content, Transition, Conclusion, CTA
-Generate 6-10 scenes. Keep each scene 10-40 seconds. Make narration conversational and engaging.`;
+Scene types: Hook, Intro, Main Content, Transition, Conclusion, CTA
+Generate 6-10 scenes. Keep each scene 10-40 seconds. Make narration conversational. Make visual descriptions detailed and cinematic for AI image generation.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -67,7 +72,7 @@ Generate 6-10 scenes. Keep each scene 10-40 seconds. Make narration conversation
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
+        max_tokens: 2500,
         messages: [{ role: 'user', content: prompt }]
       })
     });
@@ -90,4 +95,3 @@ Generate 6-10 scenes. Keep each scene 10-40 seconds. Make narration conversation
     return res.status(500).json({ error: 'Failed to generate script. Please try again.' });
   }
 }
-
