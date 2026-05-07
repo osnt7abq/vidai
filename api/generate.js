@@ -25,7 +25,16 @@ export default async function handler(req, res) {
   };
 
   const validStyle = styleMap[style] || styleMap.viral;
-  const wordCount = [150, 300, 450].includes(Number(duration)) ? Number(duration) : 300;
+
+  // Word count per minute is ~150 words spoken naturally
+  const validDurations = [150, 300, 450, 750, 1500, 2250, 3000];
+  const wordCount = validDurations.includes(Number(duration)) ? Number(duration) : 300;
+  const minutes = Math.round(wordCount / 150);
+
+  // Scale scenes based on length
+  let sceneCount = '6-10';
+  if (minutes >= 10) sceneCount = '15-20';
+  else if (minutes >= 5) sceneCount = '10-15';
 
   const thumbnailPrompt = includeThumbnail ? `
   "thumbnails": [
@@ -34,33 +43,36 @@ export default async function handler(req, res) {
     "Thumbnail concept 3: describe text overlay, background, colors, and emotion"
   ],` : '"thumbnails": [],';
 
-  const prompt = `You are a professional YouTube video scriptwriter. Generate a complete video script.
+  const prompt = `You are a professional YouTube video scriptwriter. Generate a COMPLETE and DETAILED video script.
 
 Topic: "${topic.trim()}"
 Style: ${validStyle}
-Target word count: ~${wordCount} words
+Target length: ${minutes} minutes (~${wordCount} words total)
+Number of scenes: ${sceneCount}
+
+IMPORTANT: Write FULL detailed narration for every scene. Do NOT summarize or shorten. Each scene narration must be complete sentences that a person would actually speak. The total narration across all scenes should add up to approximately ${wordCount} words.
 
 Return ONLY valid JSON (no markdown, no backticks) in this exact structure:
 {
   "title": "Compelling YouTube title",
   "hook": "One-sentence attention-grabbing hook for the first 3 seconds",
   "description": "2-sentence YouTube video description",
-  "tags": ["tag1","tag2","tag3","tag4","tag5"],
-  "totalDuration": ${Math.round(wordCount / 2.5)},
+  "tags": ["tag1","tag2","tag3","tag4","tag5","tag6","tag7"],
+  "totalDuration": ${minutes * 60},
   ${thumbnailPrompt}
   "scenes": [
     {
       "type": "Hook",
-      "duration": 15,
-      "visual": "Detailed camera shot description for AI image generation",
-      "narration": "Exact words spoken",
-      "broll": "Optional b-roll suggestion"
+      "duration": 20,
+      "visual": "Detailed cinematic camera shot description",
+      "narration": "Full word-for-word narration text that would be spoken out loud",
+      "broll": "B-roll footage suggestion"
     }
   ]
 }
 
-Scene types: Hook, Intro, Main Content, Transition, Conclusion, CTA
-Generate 6-10 scenes. Keep each scene 10-40 seconds. Make narration conversational. Make visual descriptions detailed and cinematic for AI image generation.`;
+Scene types to use: Hook, Intro, Background, Main Point 1, Main Point 2, Main Point 3, Example, Story, Tips, Summary, Conclusion, CTA
+Generate exactly ${sceneCount.split('-')[1]} scenes minimum. Each scene should be 20-60 seconds of spoken content. Make every narration detailed, engaging, and complete — never cut short.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -72,7 +84,7 @@ Generate 6-10 scenes. Keep each scene 10-40 seconds. Make narration conversation
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 2500,
+        max_tokens: 8000,
         messages: [{ role: 'user', content: prompt }]
       })
     });
